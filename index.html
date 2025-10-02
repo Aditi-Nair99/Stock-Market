@@ -1,0 +1,678 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StockPredict Pro - Market Forecasting</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --primary: #2c3e50;
+            --secondary: #3498db;
+            --accent: #16a085;
+            --light: #ecf0f1;
+            --dark: #2c3e50;
+            --success: #27ae60;
+            --danger: #e74c3c;
+            --warning: #f39c12;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #f5f7fa;
+            color: #333;
+            line-height: 1.6;
+        }
+        
+        .container {
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        
+        header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--dark) 100%);
+            color: white;
+            padding: 1rem 0;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            font-size: 1.8rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+        }
+        
+        .logo i {
+            margin-right: 10px;
+            color: var(--accent);
+        }
+        
+        .nav-links {
+            display: flex;
+            list-style: none;
+        }
+        
+        .nav-links li {
+            margin-left: 2rem;
+        }
+        
+        .nav-links a {
+            color: white;
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s;
+        }
+        
+        .nav-links a:hover {
+            color: var(--accent);
+        }
+        
+        .hero {
+            padding: 4rem 0;
+            text-align: center;
+            background: linear-gradient(rgba(44, 62, 80, 0.8), rgba(44, 62, 80, 0.8)), url('https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?ixlib=rb-4.0.3') center/cover;
+            color: white;
+        }
+        
+        .hero h1 {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+        
+        .hero p {
+            font-size: 1.2rem;
+            max-width: 700px;
+            margin: 0 auto 2rem;
+        }
+        
+        .btn {
+            display: inline-block;
+            background: var(--accent);
+            color: white;
+            padding: 0.8rem 1.5rem;
+            border-radius: 30px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s;
+            border: none;
+            cursor: pointer;
+        }
+        
+        .btn:hover {
+            background: #138a72;
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        }
+        
+        .search-box {
+            background: white;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+            margin-top: -30px;
+            position: relative;
+            z-index: 10;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        .search-box h2 {
+            margin-bottom: 1.5rem;
+            color: var(--dark);
+            text-align: center;
+        }
+        
+        .search-form {
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        .search-input {
+            flex: 1;
+            padding: 1rem;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 1rem;
+            margin-right: 1rem;
+        }
+        
+        .search-btn {
+            background: var(--secondary);
+            color: white;
+            border: none;
+            padding: 0 1.5rem;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+        
+        .results {
+            padding: 4rem 0;
+        }
+        
+        .stock-card {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+            padding: 2rem;
+            margin-bottom: 2rem;
+            display: none;
+        }
+        
+        .stock-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+        
+        .stock-title h2 {
+            font-size: 1.8rem;
+            color: var(--dark);
+        }
+        
+        .stock-title span {
+            color: #7f8c8d;
+            font-size: 1.2rem;
+        }
+        
+        .stock-price {
+            font-size: 2rem;
+            font-weight: 700;
+        }
+        
+        .up {
+            color: var(--success);
+        }
+        
+        .down {
+            color: var(--danger);
+        }
+        
+        .prediction-charts {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+        
+        @media (max-width: 768px) {
+            .prediction-charts {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .chart-container {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+        }
+        
+        .chart-container h3 {
+            margin-bottom: 1rem;
+            color: var(--dark);
+            text-align: center;
+        }
+        
+        .prediction-result {
+            background: white;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+            margin-top: 2rem;
+            text-align: center;
+        }
+        
+        .prediction-result h3 {
+            margin-bottom: 1rem;
+            color: var(--dark);
+        }
+        
+        .prediction-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--accent);
+            margin: 1rem 0;
+        }
+        
+        .confidence {
+            display: inline-block;
+            background: var(--light);
+            padding: 0.5rem 1rem;
+            border-radius: 30px;
+            font-size: 0.9rem;
+            color: var(--dark);
+            margin-bottom: 1rem;
+        }
+        
+        .features {
+            padding: 4rem 0;
+            background: var(--light);
+        }
+        
+        .section-title {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+        
+        .section-title h2 {
+            font-size: 2.5rem;
+            color: var(--dark);
+            margin-bottom: 1rem;
+        }
+        
+        .section-title p {
+            color: #7f8c8d;
+            max-width: 700px;
+            margin: 0 auto;
+        }
+        
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 2rem;
+        }
+        
+        @media (max-width: 768px) {
+            .features-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .feature-card {
+            background: white;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+            text-align: center;
+            transition: transform 0.3s;
+        }
+        
+        .feature-card:hover {
+            transform: translateY(-10px);
+        }
+        
+        .feature-icon {
+            font-size: 3rem;
+            color: var(--secondary);
+            margin-bottom: 1rem;
+        }
+        
+        .feature-card h3 {
+            margin-bottom: 1rem;
+            color: var(--dark);
+        }
+        
+        footer {
+            background: var(--dark);
+            color: white;
+            padding: 3rem 0;
+            text-align: center;
+        }
+        
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            list-style: none;
+            margin: 2rem 0;
+        }
+        
+        .footer-links li {
+            margin: 0 1rem;
+        }
+        
+        .footer-links a {
+            color: white;
+            text-decoration: none;
+        }
+        
+        .footer-links a:hover {
+            color: var(--accent);
+        }
+        
+        .disclaimer {
+            background: var(--warning);
+            color: white;
+            padding: 1.5rem;
+            margin: 2rem 0;
+            border-radius: 5px;
+        }
+        
+        .ticker-container {
+            background: var(--primary);
+            color: white;
+            padding: 0.5rem 0;
+            overflow: hidden;
+            white-space: nowrap;
+            position: relative;
+        }
+        
+        .ticker {
+            display: inline-block;
+            padding-left: 100%;
+            animation: ticker-scroll 30s linear infinite;
+        }
+        
+        .ticker-item {
+            display: inline-block;
+            margin-right: 4rem;
+        }
+        
+        @keyframes ticker-scroll {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-100%); }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <nav>
+                <div class="logo">
+                    <i class="fas fa-chart-line"></i>
+                    StockPredict Pro
+                </div>
+                <ul class="nav-links">
+                    <li><a href="#">Home</a></li>
+                    <li><a href="#">Features</a></li>
+                    <li><a href="#">Pricing</a></li>
+                    <li><a href="#">About</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <div class="ticker-container">
+        <div class="ticker">
+            <span class="ticker-item">AAPL: $172.34 ▲ 0.45%</span>
+            <span class="ticker-item">MSFT: $328.79 ▲ 1.23%</span>
+            <span class="ticker-item">GOOGL: $138.21 ▼ 0.32%</span>
+            <span class="ticker-item">AMZN: $145.18 ▲ 0.87%</span>
+            <span class="ticker-item">TSLA: $267.54 ▲ 2.14%</span>
+            <span class="ticker-item">NVDA: $431.90 ▲ 3.27%</span>
+            <span class="ticker-item">META: $312.64 ▼ 0.45%</span>
+        </div>
+    </div>
+
+    <section class="hero">
+        <div class="container">
+            <h1>AI-Powered Stock Market Predictions</h1>
+            <p>Harness the power of machine learning to predict stock prices with unprecedented accuracy. Our advanced algorithms analyze historical data, market trends, and economic indicators to forecast future stock performance.</p>
+            <a href="#search" class="btn">Get Started</a>
+        </div>
+    </section>
+
+    <div class="container">
+        <div class="search-box" id="search">
+            <h2>Search for a Stock</h2>
+            <div class="search-form">
+                <input type="text" class="search-input" placeholder="Enter stock symbol (e.g., AAPL, MSFT, GOOGL)" id="stockInput">
+                <button class="search-btn" id="searchBtn">Analyze</button>
+            </div>
+        </div>
+    </div>
+
+    <section class="results">
+        <div class="container">
+            <div class="stock-card" id="stockCard">
+                <div class="stock-header">
+                    <div class="stock-title">
+                        <h2 id="stockName">Apple Inc.</h2>
+                        <span id="stockSymbol">AAPL</span>
+                    </div>
+                    <div class="stock-price up" id="stockPrice">$172.34</div>
+                </div>
+
+                <div class="prediction-charts">
+                    <div class="chart-container">
+                        <h3>Historical Performance</h3>
+                        <canvas id="historyChart"></canvas>
+                    </div>
+                    <div class="chart-container">
+                        <h3>Prediction Trend</h3>
+                        <canvas id="predictionChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="prediction-result">
+                    <h3>Next Week Prediction</h3>
+                    <div class="prediction-value" id="predictionValue">$175.42</div>
+                    <div class="confidence">78% Confidence</div>
+                    <p>Our AI predicts an upward trend for this stock based on recent market patterns and historical data.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="features">
+        <div class="container">
+            <div class="section-title">
+                <h2>How It Works</h2>
+                <p>Our advanced prediction system utilizes multiple data sources and cutting-edge algorithms</p>
+            </div>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-database"></i>
+                    </div>
+                    <h3>Data Analysis</h3>
+                    <p>We analyze historical stock data, market trends, and economic indicators to identify patterns.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-brain"></i>
+                    </div>
+                    <h3>Machine Learning</h3>
+                    <p>Our AI models learn from historical patterns to make accurate predictions about future performance.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-chart-pie"></i>
+                    </div>
+                    <h3>Sentiment Analysis</h3>
+                    <p>We process news articles and social media to gauge market sentiment towards specific stocks.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <div class="container">
+            <div class="logo">
+                <i class="fas fa-chart-line"></i>
+                StockPredict Pro
+            </div>
+            <ul class="footer-links">
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Features</a></li>
+                <li><a href="#">Pricing</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+            <div class="disclaimer">
+                <p><strong>Disclaimer:</strong> Stock market predictions are based on algorithms and historical data analysis. They are not guaranteed to be accurate and should not be considered as financial advice. Always do your own research and consult with a qualified financial advisor before making investment decisions.</p>
+            </div>
+            <p>&copy; 2023 StockPredict Pro. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script>
+        // Sample stock data
+        const stockData = {
+            'AAPL': { name: 'Apple Inc.', price: 172.34, trend: 'up' },
+            'MSFT': { name: 'Microsoft Corporation', price: 328.79, trend: 'up' },
+            'GOOGL': { name: 'Alphabet Inc.', price: 138.21, trend: 'down' },
+            'AMZN': { name: 'Amazon.com Inc.', price: 145.18, trend: 'up' },
+            'TSLA': { name: 'Tesla, Inc.', price: 267.54, trend: 'up' },
+            'NVDA': { name: 'NVIDIA Corporation', price: 431.90, trend: 'up' },
+            'META': { name: 'Meta Platforms, Inc.', price: 312.64, trend: 'down' }
+        };
+
+        // DOM elements
+        const stockInput = document.getElementById('stockInput');
+        const searchBtn = document.getElementById('searchBtn');
+        const stockCard = document.getElementById('stockCard');
+        const stockName = document.getElementById('stockName');
+        const stockSymbol = document.getElementById('stockSymbol');
+        const stockPrice = document.getElementById('stockPrice');
+        const predictionValue = document.getElementById('predictionValue');
+
+        // Initialize charts
+        let historyChart, predictionChart;
+
+        // Event listeners
+        searchBtn.addEventListener('click', handleSearch);
+        stockInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') handleSearch();
+        });
+
+        // Handle search functionality
+        function handleSearch() {
+            const symbol = stockInput.value.trim().toUpperCase();
+            
+            if (stockData[symbol]) {
+                displayStockData(symbol);
+            } else {
+                alert('Stock not found. Please try a valid symbol like AAPL, MSFT, GOOGL, etc.');
+            }
+        }
+
+        // Display stock data
+        function displayStockData(symbol) {
+            const data = stockData[symbol];
+            
+            stockName.textContent = data.name;
+            stockSymbol.textContent = symbol;
+            stockPrice.textContent = '$' + data.price;
+            stockPrice.className = 'stock-price ' + data.trend;
+            
+            // Generate a prediction value (current price + random % change between -5% to +10%)
+            const changePercent = (Math.random() * 15) - 5;
+            const prediction = data.price * (1 + changePercent / 100);
+            predictionValue.textContent = '$' + prediction.toFixed(2);
+            
+            // Show the stock card
+            stockCard.style.display = 'block';
+            
+            // Scroll to results
+            stockCard.scrollIntoView({ behavior: 'smooth' });
+            
+            // Update charts
+            updateCharts(symbol, data.price, prediction);
+        }
+
+        // Update charts with new data
+        function updateCharts(symbol, currentPrice, predictedPrice) {
+            // Destroy existing charts if they exist
+            if (historyChart) historyChart.destroy();
+            if (predictionChart) predictionChart.destroy();
+            
+            // Generate historical data (past 10 days)
+            const historyLabels = [];
+            const historyData = [];
+            let currentValue = currentPrice;
+            
+            for (let i = 9; i >= 0; i--) {
+                const date = new Date();
+                date.setDate(date.getDate() - i);
+                historyLabels.push(date.toLocaleDateString());
+                
+                // Random fluctuation
+                currentValue = currentValue * (1 + (Math.random() * 0.04 - 0.02));
+                historyData.push(currentValue);
+            }
+            
+            // Create historical chart
+            const historyCtx = document.getElementById('historyChart').getContext('2d');
+            historyChart = new Chart(historyCtx, {
+                type: 'line',
+                data: {
+                    labels: historyLabels,
+                    datasets: [{
+                        label: 'Stock Price',
+                        data: historyData,
+                        borderColor: '#3498db',
+                        tension: 0.3,
+                        fill: true,
+                        backgroundColor: 'rgba(52, 152, 219, 0.1)'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Last 10 Days Performance'
+                        }
+                    }
+                }
+            });
+            
+            // Generate prediction data (next 7 days)
+            const predictionLabels = ['Today', 'Tomorrow', 'Day 3', 'Day 4', 'Day 5', 'Day 6', 'Day 7'];
+            const predictionData = [currentPrice];
+            let predictionValue = currentPrice;
+            
+            for (let i = 1; i < 7; i++) {
+                // Gradually approach the predicted price
+                const progress = i / 6;
+                predictionValue = currentPrice + (predictedPrice - currentPrice) * progress;
+                
+                // Add some randomness
+                predictionValue = predictionValue * (1 + (Math.random() * 0.02 - 0.01));
+                predictionData.push(predictionValue);
+            }
+            
+            // Create prediction chart
+            const predictionCtx = document.getElementById('predictionChart').getContext('2d');
+            predictionChart = new Chart(predictionCtx, {
+                type: 'line',
+                data: {
+                    labels: predictionLabels,
+                    datasets: [{
+                        label: 'Predicted Price',
+                        data: predictionData,
+                        borderColor: '#16a085',
+                        tension: 0.3,
+                        fill: true,
+                        backgroundColor: 'rgba(22, 160, 133, 0.1)'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: '7-Day Price Prediction'
+                        }
+                    }
+                }
+            });
+        }
+
+        // Initialize with a default stock
+        window.addEventListener('load', function() {
+            stockInput.value = 'AAPL';
+            handleSearch();
+        });
+    </script>
+</body>
+</html>
